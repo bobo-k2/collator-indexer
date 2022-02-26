@@ -1,0 +1,21 @@
+specVersion: 0.2.0
+name: collator-indexer
+version: 0.0.4
+description: Astar collators indexer project
+repository: 'https://github.com/subquery/astar-subql-starters'
+schema:
+  file: ./schema.graphql
+network:
+  endpoint: 'wss://astar.api.onfinality.io/public-wss'
+  genesisHash: '0x9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6'
+  dictionary: 'https://api.subquery.network/sq/subquery/astar-dictionary'
+  chaintypes:
+    file: ./dist/chaintypes.js
+dataSources:
+  - kind: substrate/Runtime
+    startBlock: 400000
+    mapping:
+      file: ./dist/index.js
+      handlers:
+        - handler: handleBlock
+          kind: substrate/BlockHandler

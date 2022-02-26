@@ -1,0 +1,14 @@
+type Collator @entity {
+
+  id: ID! #id is a required field
+
+  blocksProduced: Int!
+}
+
+type Day @entity {
+  id: ID!
+
+  firstBlock: BigInt!
+
+  lastBlock: BigInt
+}

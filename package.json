@@ -1,0 +1,31 @@
+{
+  "name": "collator-indexer",
+  "version": "0.0.1",
+  "description": "Astar collators indexer project",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "prepack": "rm -rf dist && npm build",
+    "test": "jest",
+    "codegen": "./node_modules/.bin/subql codegen",
+    "docker": "docker-compose pull && docker-compose up"
+  },
+  "homepage": "https://github.com/subquery/astar-subql-starter",
+  "repository": "github:subquery/astar-subql-starter",
+  "files": [
+    "dist",
+    "schema.graphql",
+    "project.yaml"
+  ],
+  "author": "Bobo K.",
+  "license": "MIT",
+  "devDependencies": {
+    "@polkadot/api": "^7",
+    "@subql/types": "latest",
+    "typescript": "^4.1.3",
+    "@subql/cli": "latest"
+  },
+  "exports": {
+    "chaintypes": "src/chaintypes.ts"
+  }
+}
