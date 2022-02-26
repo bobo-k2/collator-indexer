@@ -12,3 +12,15 @@ type Day @entity {
 
   lastBlock: BigInt
 }
+
+type BlockProduction @entity {
+  id: ID!
+
+  collator: Collator!
+
+  day: Day
+
+  blocksProduced: Int!
+
+  avgBlockProductionOffset: Float!
+}
