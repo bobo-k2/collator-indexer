@@ -67,6 +67,7 @@ async function handleDayStartEnd(block: SubstrateBlock): Promise<void> {
 }
 
 async function calculateMissedBlocks(date: Date): Promise<void> {
+  const validators = await api.query.session.validators();
   if (validators) {
     const day = await Day.get(formatDate(date));
 
@@ -93,14 +94,12 @@ async function calculateMissedBlocks(date: Date): Promise<void> {
   }
 }
 
-let validators: AccountId[];
+// let validators: AccountId[];
 
 export async function handleBlock(block: SubstrateBlock): Promise<void> {
     await handleDayStartEnd(block);
 
-    if (!validators) {
-      validators = await api.query.session.validators();
-    }
+    const validators = await api.query.session.validators();
     const author = extractAuthor(block.block.header.digest, validators);
 
     if (author) {
