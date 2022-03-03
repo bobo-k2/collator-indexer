@@ -46,7 +46,7 @@ Under the project directory run following command:
 ```
 docker-compose pull && docker-compose up
 ```
-#### Query the project
+#### Query the project data
 
 Open your browser and head to `http://localhost:3000`.
 
