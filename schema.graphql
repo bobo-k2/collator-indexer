@@ -2,7 +2,11 @@ type Collator @entity {
 
   id: ID! #id is a required field
 
+  name: String
+
   blocksProduced: Int!
+
+  blocksMissed: Int!
 }
 
 type Day @entity {
@@ -21,6 +25,8 @@ type BlockProduction @entity {
   day: Day
 
   blocksProduced: Int!
+
+  blocksMissed: Int!
 
   avgBlockProductionOffset: Float!
 }
