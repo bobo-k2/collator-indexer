@@ -30,3 +30,7 @@ type BlockProduction @entity {
 
   avgBlockProductionOffset: Float!
 }
+
+type MissedBlocks @entity {
+
+}

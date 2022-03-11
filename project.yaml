@@ -1,6 +1,6 @@
 specVersion: 0.2.0
 name: collator-indexer
-version: 0.0.4
+version: 0.0.5
 description: Astar collators indexer project
 repository: 'https://github.com/subquery/astar-subql-starters'
 schema:

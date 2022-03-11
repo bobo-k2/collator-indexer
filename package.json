@@ -9,7 +9,8 @@
     "test": "jest",
     "codegen": "./node_modules/.bin/subql codegen",
     "docker": "docker-compose pull && docker-compose up",
-    "debug": "node --inspect-brk /usr/local/bin/subql-node -f ."
+    "debug": "node --inspect-brk /usr/local/bin/subql-node -f .",
+    "debug:export": "yarn build && node dist/index.js"
   },
   "homepage": "https://github.com/subquery/astar-subql-starter",
   "repository": "github:subquery/astar-subql-starter",
@@ -31,6 +32,7 @@
   },
   "dependencies": {
     "@polkadot/util": "^8.4.1",
-    "@polkadot/util-crypto": "^8.4.1"
+    "@polkadot/util-crypto": "^8.4.1",
+    "axios": "^0.26.1"
   }
 }
