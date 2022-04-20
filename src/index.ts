@@ -3,7 +3,7 @@ export * from './mappings/mappingHandlers'
 import "@polkadot/api-augment"
 import axios from 'axios';
 import fs from 'fs';
-import { CollatorStats, DailyStats } from './types/collatorStats';
+import { CollatorStats, DailyStats } from './collatorStats';
 
 const API_URL = 'https://api.subquery.network/sq/bobo-k2/collator-indexer__Ym9ib';
 
@@ -35,7 +35,7 @@ const getData = async (date: Date): Promise<any> => {
 };
 
 const storeCsv = (csv: string): void => {
-  fs.writeFileSync('dist/output.csv', csv);
+  fs.writeFileSync('dist/blocks_missed.csv', csv);
 }
 
 const generateCSV = async(startDate: Date): Promise<string> => {
