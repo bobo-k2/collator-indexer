@@ -30,3 +30,15 @@ type BlockProduction @entity {
 
   avgBlockProductionOffset: Float!
 }
+
+type Block @entity {
+  id: ID! # block number
+
+  collator: Collator
+
+  extrinsicsCount: Int!
+
+  weight: BigInt!
+
+  weightRatio: Float!
+}

@@ -1,89 +1,91 @@
 //Exports all handler functions
 export * from './mappings/mappingHandlers'
+// Polkadot.js v7 breaking change see: https://polkadot.js.org/docs/api/FAQ#since-upgrading-to-the-7x-series-typescript-augmentation-is-missing
 import "@polkadot/api-augment"
-import axios from 'axios';
-import fs from 'fs';
-import { CollatorStats, DailyStats } from './collatorStats';
 
-const API_URL = 'https://api.subquery.network/sq/bobo-k2/collator-indexer__Ym9ib';
+// // import axios from 'axios';
+// // import fs from 'fs';
+// import { CollatorStats, DailyStats } from './collatorStats';
 
-const getData = async (date: Date): Promise<any> => {
-  const formattedDate = date.toISOString().slice(0,10).replace(/-/g,'');
-  console.log('Formatted date ', formattedDate);
-  const data = await axios.post(API_URL, {
-    query: `query {
-      blockProductions(filter: {
-        dayId: {
-          equalTo: "${formattedDate}"
-        }
-      },
-      orderBy: BLOCKS_MISSED_DESC) {
-        nodes {
-          collatorId,
-          collator{
-            name
-          },
-          blocksProduced,
-          blocksMissed
-        }
-      }
-    }`
-  });
+// const API_URL = 'https://api.subquery.network/sq/bobo-k2/collator-indexer__Ym9ib';
 
-  // console.log(data.data.data.blockProductions.nodes[0]);
-  return data.data;
-};
+// const getData = async (date: Date): Promise<any> => {
+//   const formattedDate = date.toISOString().slice(0,10).replace(/-/g,'');
+//   console.log('Formatted date ', formattedDate);
+//   const data = await axios.post(API_URL, {
+//     query: `query {
+//       blockProductions(filter: {
+//         dayId: {
+//           equalTo: "${formattedDate}"
+//         }
+//       },
+//       orderBy: BLOCKS_MISSED_DESC) {
+//         nodes {
+//           collatorId,
+//           collator{
+//             name
+//           },
+//           blocksProduced,
+//           blocksMissed
+//         }
+//       }
+//     }`
+//   });
 
-const storeCsv = (csv: string): void => {
-  fs.writeFileSync('dist/blocks_missed.csv', csv);
-}
+//   // console.log(data.data.data.blockProductions.nodes[0]);
+//   return data.data;
+// };
 
-const generateCSV = async(startDate: Date): Promise<string> => {
-  const now = new Date();
-  const stats: CollatorStats[] = [];
-  let csv = '';
-  for(let d = startDate; d <= now; d.setDate(d.getDate() + 1)) {
-    const data = await getData(d);
-    data.data.blockProductions.nodes.forEach(node => {
-      let stat = stats.find(x => x.id === node.collatorId);
-      if (!stat) {
-        stat = new CollatorStats();
-        stat.id = node.collatorId;
-        stat.name = node.collator.name;
-        stats.push(stat);
-      } 
+// const storeCsv = (csv: string): void => {
+//   // fs.writeFileSync('dist/blocks_missed.csv', csv);
+// }
 
-      stat.stats.push(new DailyStats(new Date(d), node.blocksMissed));
-    });
-  }
+// const generateCSV = async(startDate: Date): Promise<string> => {
+//   const now = new Date();
+//   const stats: CollatorStats[] = [];
+//   let csv = '';
+//   for(let d = startDate; d <= now; d.setDate(d.getDate() + 1)) {
+//     const data = await getData(d);
+//     data.data.blockProductions.nodes.forEach(node => {
+//       let stat = stats.find(x => x.id === node.collatorId);
+//       if (!stat) {
+//         stat = new CollatorStats();
+//         stat.id = node.collatorId;
+//         stat.name = node.collator.name;
+//         stats.push(stat);
+//       } 
 
-  if (stats.length > 0) {
-    // CSV header
-    let header = 'Address [Name]';
-    stats[0].stats.forEach(s => {
-      header = header + `, ${s.date.toLocaleDateString()}`;
-    });
-    // console.log(header);
+//       stat.stats.push(new DailyStats(new Date(d), node.blocksMissed));
+//     });
+//   }
 
-    // CSV body
-    csv = header + '\n';
-    stats.forEach(stat => {
-      let row = `${stat.id} [${stat.name?.replace(/[^\x00-\x7F]/g, '')}]`;
-      stat.stats.forEach(s => {
-        row = row + `, ${s.blocksMissed}`;
-      });
+//   if (stats.length > 0) {
+//     // CSV header
+//     let header = 'Address [Name]';
+//     stats[0].stats.forEach(s => {
+//       header = header + `, ${s.date.toLocaleDateString()}`;
+//     });
+//     // console.log(header);
 
-      // console.log(row);
-      csv += row + '\n';
-    });
+//     // CSV body
+//     csv = header + '\n';
+//     stats.forEach(stat => {
+//       let row = `${stat.id} [${stat.name?.replace(/[^\x00-\x7F]/g, '')}]`;
+//       stat.stats.forEach(s => {
+//         row = row + `, ${s.blocksMissed}`;
+//       });
 
-    console.log(csv);
-  } else {
-    console.warn('No stats found');
-  }
+//       // console.log(row);
+//       csv += row + '\n';
+//     });
 
-  storeCsv(csv);
-  return csv;
-}
+//     console.log(csv);
+//   } else {
+//     console.warn('No stats found');
+//   }
 
-generateCSV(new Date('2022-03-10'));
+//   storeCsv(csv);
+//   return csv;
+// }
+
+// generateCSV(new Date('2022-03-10'));

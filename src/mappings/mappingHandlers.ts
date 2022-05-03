@@ -3,6 +3,7 @@ import {Collator, Day, BlockProduction} from "../types";
 import type { AccountId, Digest } from '@polkadot/types/interfaces';
 import { encodeAddress } from '@polkadot/util-crypto'
 import { hexToString } from '@polkadot/util';
+import { handleBlockWeight } from "./blockWeight";
 
 // https://github.com/polkadot-js/api/blob/beffc7b754dce576242a1b17da81c5ff61096631/packages/api-derive/src/type/util.ts#L6
 function extractAuthor (digest: Digest, sessionValidators: AccountId[] = []): AccountId | undefined {
@@ -200,7 +201,7 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
       const nextValidatorIndex = (validators.indexOf(authorAddress) + 1) % validators.length;
       currentValidator = validators[nextValidatorIndex].toString();
       
-      // logger.info(`Block ${block.block.header.hash.toString()} ${block.timestamp} ${author}`);
+      await handleBlockWeight(block, author);
     } else {
       logger.error(`Unable to extract collator address for block ${block.block.header.hash.toString()}`);
     }
