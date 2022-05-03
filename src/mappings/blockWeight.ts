@@ -25,7 +25,6 @@ export async function handleBlockWeight (block: SubstrateBlock, author: AccountI
   // weight calc
   const events = await api.query.system.events<FrameSystemEventRecord[]>();
   const blockWeight = extractBlockWeight(events);
-  logger.warn(`weight ${blockWeight}`);
   const maxWeight = await getMaxBlockWeight();
 
   const blockRecord = new Block(block.block.header.number.toString());
