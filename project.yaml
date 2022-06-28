@@ -1,23 +1,26 @@
-specVersion: 0.2.0
+specVersion: 1.0.0
 name: collator-indexer
-version: 0.0.5
+version: 0.0.1
+runner:
+  node:
+    name: '@subql/node'
+    version: '>=1.0.0'
+  query:
+    name: '@subql/query'
+    version: '*'
 description: Astar collators indexer project
 repository: 'https://github.com/subquery/astar-subql-starters'
 schema:
   file: ./schema.graphql
 network:
-  # endpoint: 'wss://astar.api.onfinality.io/public-ws#/'
-  # genesisHash: '0x9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6' #Astar
-  # endpoint: 'wss://shiden.api.onfinality.io/public-ws#/'
-  # genesisHash: '0xf1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108' #Shiden
-  endpoint: 'wss://rpc.shibuya.astar.network'
-  genesisHash: '0xddb89973361a170839f80f152d2e9e38a376a5a7eccefcade763f46a8e567019'
-  dictionary: 'https://api.subquery.network/sq/subquery/astar-dictionary'
+  chainId: '0xf1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108' #Shiden
+  endpoint: 'wss://shiden.api.onfinality.io/public-ws#/'
+  dictionary: 'https://api.subquery.network/sq/subquery/shiden-dictionary'
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 1100000
+    startBlock: 1500000
     mapping:
       file: ./dist/index.js
       handlers:

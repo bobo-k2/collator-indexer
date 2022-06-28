@@ -22,7 +22,7 @@
   "author": "Bobo K.",
   "license": "MIT",
   "devDependencies": {
-    "@polkadot/api": "^7",
+    "@polkadot/api": "^8",
     "@subql/cli": "latest",
     "@subql/types": "latest",
     "typescript": "^4.1.3"
