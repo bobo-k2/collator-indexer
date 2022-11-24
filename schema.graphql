@@ -42,3 +42,19 @@ type Block @entity {
 
   weightRatio: Float!
 }
+
+enum BlockProductionStatus {
+  Produced,
+  Missed
+}
+
+type BlockRealTimeData @entity {
+  id: ID! #Random hash
+  timestamp: BigInt! @index #Block creation timestamp
+  blockNumber: BigInt!
+  collatorAddress: String! @index #Address of collator which produced/missed block
+  status: BlockProductionStatus! #status of block production (missed/produced)
+  extrinsicsCount: Int #Number of extrinsics in produced block
+  weight: BigInt #Total produced block weight
+  weightRatio: Float #Produced block fill ratio
+}

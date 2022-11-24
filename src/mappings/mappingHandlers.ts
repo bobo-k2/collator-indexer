@@ -1,9 +1,9 @@
 import {SubstrateBlock} from "@subql/types";
-import {Collator, Day, BlockProduction} from "../types";
+import {Collator, Day, BlockProduction, BlockRealTimeData, BlockProductionStatus} from "../types";
 import type { AccountId, Digest } from '@polkadot/types/interfaces';
 import { encodeAddress } from '@polkadot/util-crypto'
-import { hexToString } from '@polkadot/util';
-import { handleBlockWeight } from "./blockWeight";
+import { getBlockWeigh, handleBlockWeight } from "./blockWeight";
+import crypto from "crypto";
 
 // https://github.com/polkadot-js/api/blob/beffc7b754dce576242a1b17da81c5ff61096631/packages/api-derive/src/type/util.ts#L6
 function extractAuthor (digest: Digest, sessionValidators: AccountId[] = []): AccountId | undefined {
@@ -173,6 +173,8 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
         while (currentValidator !== authorAddress) {
           logger.warn(`Validator ${currentValidator} missed block ${block.block.header.number}`);
 
+          await handleRealTimeData(block, currentValidator, true);
+
           const current = await getCollator(currentValidator);
           current.blocksMissed++;
           await current.save();
@@ -186,6 +188,8 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
           currentValidator = validators[currentValidatorIndex].toString();
         }
       }
+
+      await handleRealTimeData(block, authorAddress, false);
 
       // aggregate total blocks produced by a validator
       let collator = await getCollator(authorAddress);
@@ -205,4 +209,22 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
     } else {
       logger.error(`Unable to extract collator address for block ${block.block.header.hash.toString()}`);
     }
+}
+
+async function handleRealTimeData(block:SubstrateBlock, collatorAddress: string, isMissed: boolean) {
+  const id = crypto.randomUUID();
+  const record = new BlockRealTimeData(id);
+  record.blockNumber = block.block.header.number.toBigInt();
+  record.collatorAddress = collatorAddress;
+  record.timestamp = BigInt(block.timestamp.getTime());
+  record.status = isMissed ? BlockProductionStatus.Missed : BlockProductionStatus.Produced
+
+  if (!isMissed) {
+    const weigh = await getBlockWeigh(block);
+    record.extrinsicsCount = block.block.extrinsics.length;
+    record.weight = weigh.weight;
+    record.weightRatio = weigh.weightRatio;
+  }
+
+  await record.save();
 }

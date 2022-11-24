@@ -34,3 +34,17 @@ export async function handleBlockWeight (block: SubstrateBlock, author: AccountI
   blockRecord.weightRatio = blockWeight.toNumber() / maxWeight;
   await blockRecord.save();  
 }
+
+export async function getBlockWeigh(block:SubstrateBlock): Promise<{
+  weight: bigint,
+  weightRatio: number
+}> {
+  const events = await api.query.system.events<FrameSystemEventRecord[]>();
+  const blockWeight = extractBlockWeight(events);
+  const maxWeight = await getMaxBlockWeight();
+
+  return {
+    weight: BigInt(blockWeight.toString()),
+    weightRatio: blockWeight.toNumber() / maxWeight,
+  };
+}
