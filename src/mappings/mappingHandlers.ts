@@ -205,7 +205,7 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
       const nextValidatorIndex = (validators.indexOf(authorAddress) + 1) % validators.length;
       currentValidator = validators[nextValidatorIndex].toString();
       
-      await handleBlockWeight(block, author);
+      // await handleBlockWeight(block, author);
     } else {
       logger.error(`Unable to extract collator address for block ${block.block.header.hash.toString()}`);
     }
