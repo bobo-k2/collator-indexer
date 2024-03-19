@@ -163,6 +163,7 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
 
     if (author) {
       const authorAddress = author.toString();
+      let collator = await getCollator(authorAddress);
 
       // check if validator missed a block.
       if(!currentValidator) {
@@ -170,10 +171,11 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
         currentValidator = authorAddress;
         // TODO find next 
       } else {
+        // logger.info(`Current Validator ${currentValidator}, author ${authorAddress}`);
         while (currentValidator !== authorAddress) {
-          logger.warn(`Validator ${currentValidator} missed block ${block.block.header.number}`);
+          logger.warn(`Validator ${currentValidator} missed block ${block.block.header.number}. Author ${authorAddress}`);
 
-          await handleRealTimeData(block, currentValidator, true);
+          await handleRealTimeData(block, currentValidator, true, collator?.name);
 
           const current = await getCollator(currentValidator);
           current.blocksMissed++;
@@ -189,10 +191,9 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
         }
       }
 
-      await handleRealTimeData(block, authorAddress, false);
+      await handleRealTimeData(block, authorAddress, false, collator?.name);
 
-      // aggregate total blocks produced by a validator
-      let collator = await getCollator(authorAddress);
+      // aggregate total blocks produced by a collator
       collator.blocksProduced++;
       await collator.save();
 
@@ -211,11 +212,12 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
     }
 }
 
-async function handleRealTimeData(block:SubstrateBlock, collatorAddress: string, isMissed: boolean) {
+async function handleRealTimeData(block:SubstrateBlock, collatorAddress: string, isMissed: boolean, collatorIdentity?: string) {
   const id = crypto.randomUUID();
   const record = new BlockRealTimeData(id);
   record.blockNumber = block.block.header.number.toBigInt();
   record.collatorAddress = collatorAddress;
+  record.collatorIdentity = collatorIdentity;
   record.timestamp = BigInt(block.timestamp.getTime());
   record.status = isMissed ? BlockProductionStatus.Missed : BlockProductionStatus.Produced
 

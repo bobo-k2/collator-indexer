@@ -10,7 +10,10 @@
     "codegen": "./node_modules/.bin/subql codegen",
     "docker": "docker-compose pull && docker-compose up",
     "debug": "node --inspect-brk /usr/local/bin/subql-node -f .",
-    "debug:export": "yarn build && node dist/index.js"
+    "debug:export": "yarn build && node dist/index.js",
+    "publish:astar": "subql publish",
+    "publish:shiden": "subql publish -f ./shiden.yaml",
+    "publish:shibuya": "subql publish -f ./shibuya.yaml"
   },
   "homepage": "https://github.com/subquery/astar-subql-starter",
   "repository": "github:subquery/astar-subql-starter",

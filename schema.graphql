@@ -53,6 +53,7 @@ type BlockRealTimeData @entity {
   timestamp: BigInt! @index #Block creation timestamp
   blockNumber: BigInt!
   collatorAddress: String! @index #Address of collator which produced/missed block
+  collatorIdentity: String #Identity of collator which produced/missed block
   status: BlockProductionStatus! #status of block production (missed/produced)
   extrinsicsCount: Int #Number of extrinsics in produced block
   weight: BigInt #Total produced block weight

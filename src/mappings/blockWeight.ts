@@ -13,14 +13,6 @@ async function getMaxBlockWeight(): Promise<number> {
   return maxBlockWeight;
 }
 
-function extractBlockWeightV1 (events: FrameSystemEventRecord[]): BN {
-  return events.reduce((weight, { event: { data, method, section } }) => 
-      section === 'system' && ['ExtrinsicFailed', 'ExtrinsicSuccess'].includes(method)
-        ? weight.iadd(((method === 'ExtrinsicSuccess' ? data[0] : data[1]) as DispatchInfo).weight)
-        : weight
-    , new BN(0));
-}
-
 function getWeight (weight: any): BN {
   const isWeightV2 = 'proofSize' in weight && 'refTime' in weight;
   return isWeightV2 ? (weight as WeightV2).refTime.toBn() : weight;
