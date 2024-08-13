@@ -3,24 +3,24 @@ name: collator-indexer
 version: 0.0.1
 runner:
   node:
-    name: '@subql/node'
-    version: '>=1.0.0'
+    name: "@subql/node"
+    version: ">=1.0.0"
   query:
-    name: '@subql/query'
-    version: '*'
+    name: "@subql/query"
+    version: "*"
 description: Astar collators indexer project
-repository: 'https://github.com/subquery/astar-subql-starters'
+repository: "https://github.com/subquery/astar-subql-starters"
 schema:
   file: ./schema.graphql
 network:
-  chainId: '0xf1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108' #Shiden
-  endpoint: 'wss://runtime.shiden.astar.network'
-  dictionary: 'https://api.subquery.network/sq/subquery/shiden-dictionary'
+  chainId: "0xf1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108" #Shiden
+  endpoint: "wss://runtime.shiden.astar.network"
+  dictionary: "https://api.subquery.network/sq/subquery/shiden-dictionary"
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 3900000
+    startBlock: 6396000
     mapping:
       file: ./dist/index.js
       handlers:

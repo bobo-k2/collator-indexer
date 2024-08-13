@@ -1,12 +1,21 @@
-import {SubstrateBlock} from "@subql/types";
-import {Collator, Day, BlockProduction, BlockRealTimeData, BlockProductionStatus} from "../types";
-import type { AccountId, Digest } from '@polkadot/types/interfaces';
-import { encodeAddress } from '@polkadot/util-crypto'
+import { SubstrateBlock } from "@subql/types";
+import {
+  Collator,
+  Day,
+  BlockProduction,
+  BlockRealTimeData,
+  BlockProductionStatus,
+} from "../types";
+import type { AccountId, Digest } from "@polkadot/types/interfaces";
+import { encodeAddress } from "@polkadot/util-crypto";
 import { getBlockWeigh, handleBlockWeight } from "./blockWeight";
 import crypto from "crypto";
 
 // https://github.com/polkadot-js/api/blob/beffc7b754dce576242a1b17da81c5ff61096631/packages/api-derive/src/type/util.ts#L6
-function extractAuthor (digest: Digest, sessionValidators: AccountId[] = []): AccountId | undefined {
+function extractAuthor(
+  digest: Digest,
+  sessionValidators: AccountId[] = []
+): AccountId | undefined {
   const [citem] = digest.logs.filter((e) => e.isConsensus);
   const [pitem] = digest.logs.filter((e) => e.isPreRuntime);
   const [sitem] = digest.logs.filter((e) => e.isSeal);
@@ -41,7 +50,7 @@ function extractAuthor (digest: Digest, sessionValidators: AccountId[] = []): Ac
 }
 
 function formatDate(date: Date): string {
-  return date.toISOString().slice(0,10).replace(/-/g, '');
+  return date.toISOString().slice(0, 10).replace(/-/g, "");
 }
 
 function getBlockProductionKey(date: Date, author: string): string {
@@ -76,35 +85,39 @@ async function calculateMissedBlocks(date: Date): Promise<void> {
 
     if (day) {
       const blocksProducedInDay = day.lastBlock - day.firstBlock + BigInt(1);
-      const avgPerValidator = Number(blocksProducedInDay.toString()) / validators.length;
+      const avgPerValidator =
+        Number(blocksProducedInDay.toString()) / validators.length;
 
-      validators.forEach(async validator => {
+      validators.forEach(async (validator) => {
         const id = getBlockProductionKey(date, validator.toString());
         const blockProduction = await BlockProduction.get(id);
 
         if (blockProduction) {
-          blockProduction.avgBlockProductionOffset = blockProduction.blocksProduced - avgPerValidator;
-          await blockProduction.save();    
+          blockProduction.avgBlockProductionOffset =
+            blockProduction.blocksProduced - avgPerValidator;
+          await blockProduction.save();
         } else {
-          logger.warn(`calculateMissedBlocks:: no block production for ${validator} on ${date}`);
+          logger.warn(
+            `calculateMissedBlocks:: no block production for ${validator} on ${date}`
+          );
         }
       });
     } else {
       logger.warn(`calculateMissedBlocks:: no day defined for ${date}`);
     }
   } else {
-    logger.warn('calculateMissedBlocks:: no validators defined');
+    logger.warn("calculateMissedBlocks:: no validators defined");
   }
 }
 
 // hexToString from @polkadot/util raises "TypeError: The "input" argument must be an instance of ArrayBuffer or ArrayBufferView. Received an instance of Object"
 function hex2string(hex: string) {
-  if (hex.startsWith('0x')) {
+  if (hex.startsWith("0x")) {
     hex = hex.substring(2);
   }
-  let str = '';
+  let str = "";
   for (let i = 0; i < hex.length; i += 2)
-      str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
   return str;
 }
 
@@ -117,10 +130,12 @@ async function getCollator(address: string): Promise<Collator> {
     collator.blocksProduced = 0;
     collator.blocksMissed = 0;
 
-    const identity = await (await api.query.identity.identityOf(address)).unwrapOrDefault();
+    const identity = await (
+      await api.query.identity.identityOf(address)
+    ).unwrapOrDefault();
     if (identity) {
-      const name = identity.info.display.toString();
-      if (name !== 'None') {
+      const name = identity[0].info.display.toString();
+      if (name !== "None") {
         const nameString = JSON.parse(name).raw.toString();
         collator.name = hex2string(nameString);
       }
@@ -136,7 +151,10 @@ function convertAddressToSS58(accountId: string): string {
   return convertedAddress;
 }
 
-async function getBlockProduction(block: SubstrateBlock, address: string): Promise<BlockProduction> {
+async function getBlockProduction(
+  block: SubstrateBlock,
+  address: string
+): Promise<BlockProduction> {
   const id = getBlockProductionKey(block.timestamp, address);
   let blockProduction = await BlockProduction.get(id);
 
@@ -152,74 +170,88 @@ async function getBlockProduction(block: SubstrateBlock, address: string): Promi
   return blockProduction;
 }
 
-
-let currentValidator = '';
+let currentValidator = "";
 
 export async function handleBlock(block: SubstrateBlock): Promise<void> {
-    await handleDayStartEnd(block);
+  await handleDayStartEnd(block);
 
-    const validators = await api.query.session.validators();
-    const author = extractAuthor(block.block.header.digest, validators);
+  const validators = await api.query.session.validators();
+  const author = extractAuthor(block.block.header.digest, validators);
 
-    if (author) {
-      const authorAddress = author.toString();
-      let collator = await getCollator(authorAddress);
+  if (author) {
+    const authorAddress = author.toString();
+    let collator = await getCollator(authorAddress);
 
-      // check if validator missed a block.
-      if(!currentValidator) {
-        // await getCollators();
-        currentValidator = authorAddress;
-        // TODO find next 
-      } else {
-        // logger.info(`Current Validator ${currentValidator}, author ${authorAddress}`);
-        while (currentValidator !== authorAddress) {
-          logger.warn(`Validator ${currentValidator} missed block ${block.block.header.number}. Author ${authorAddress}`);
-
-          await handleRealTimeData(block, currentValidator, true, collator?.name);
-
-          const current = await getCollator(currentValidator);
-          current.blocksMissed++;
-          await current.save();
-
-          const currentProduction = await getBlockProduction(block, currentValidator);
-          currentProduction.blocksMissed++;
-          await currentProduction.save();
-
-          let currentValidatorIndex = validators.indexOf(currentValidator);
-          currentValidatorIndex = (currentValidatorIndex+ 1) % validators.length;
-          currentValidator = validators[currentValidatorIndex].toString();
-        }
-      }
-
-      await handleRealTimeData(block, authorAddress, false, collator?.name);
-
-      // aggregate total blocks produced by a collator
-      collator.blocksProduced++;
-      await collator.save();
-
-      // aggregate total blocks produced per validator per day
-      const blockProduction = await getBlockProduction(block, authorAddress);
-      blockProduction.blocksProduced++;
-      await blockProduction.save();
-
-      // determine next validator
-      const nextValidatorIndex = (validators.indexOf(authorAddress) + 1) % validators.length;
-      currentValidator = validators[nextValidatorIndex].toString();
-      
-      // await handleBlockWeight(block, author);
+    // check if validator missed a block.
+    if (!currentValidator) {
+      // await getCollators();
+      currentValidator = authorAddress;
+      // TODO find next
     } else {
-      logger.error(`Unable to extract collator address for block ${block.block.header.hash.toString()}`);
+      // logger.info(`Current Validator ${currentValidator}, author ${authorAddress}`);
+      while (currentValidator !== authorAddress) {
+        logger.warn(
+          `Validator ${currentValidator} missed block ${block.block.header.number}. Author ${authorAddress}`
+        );
+
+        await handleRealTimeData(block, currentValidator, true, collator?.name);
+
+        const current = await getCollator(currentValidator);
+        current.blocksMissed++;
+        await current.save();
+
+        const currentProduction = await getBlockProduction(
+          block,
+          currentValidator
+        );
+        currentProduction.blocksMissed++;
+        await currentProduction.save();
+
+        let currentValidatorIndex = validators.indexOf(currentValidator);
+        currentValidatorIndex = (currentValidatorIndex + 1) % validators.length;
+        currentValidator = validators[currentValidatorIndex].toString();
+      }
     }
+
+    await handleRealTimeData(block, authorAddress, false, collator?.name);
+
+    // aggregate total blocks produced by a collator
+    collator.blocksProduced++;
+    await collator.save();
+
+    // aggregate total blocks produced per validator per day
+    const blockProduction = await getBlockProduction(block, authorAddress);
+    blockProduction.blocksProduced++;
+    await blockProduction.save();
+
+    // determine next validator
+    const nextValidatorIndex =
+      (validators.indexOf(authorAddress) + 1) % validators.length;
+    currentValidator = validators[nextValidatorIndex].toString();
+
+    // await handleBlockWeight(block, author);
+  } else {
+    logger.error(
+      `Unable to extract collator address for block ${block.block.header.hash.toString()}`
+    );
+  }
 }
 
-async function handleRealTimeData(block:SubstrateBlock, collatorAddress: string, isMissed: boolean, collatorIdentity?: string) {
+async function handleRealTimeData(
+  block: SubstrateBlock,
+  collatorAddress: string,
+  isMissed: boolean,
+  collatorIdentity?: string
+) {
   const id = crypto.randomUUID();
   const record = new BlockRealTimeData(id);
   record.blockNumber = block.block.header.number.toBigInt();
   record.collatorAddress = collatorAddress;
   record.collatorIdentity = collatorIdentity;
   record.timestamp = BigInt(block.timestamp.getTime());
-  record.status = isMissed ? BlockProductionStatus.Missed : BlockProductionStatus.Produced
+  record.status = isMissed
+    ? BlockProductionStatus.Missed
+    : BlockProductionStatus.Produced;
 
   if (!isMissed) {
     const weigh = await getBlockWeigh(block);
