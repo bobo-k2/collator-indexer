@@ -16,8 +16,8 @@ network:
   chainId: "0xf1cf9022c7ebb34b162d5b5e34e705a5a740b2d0ecc1009fb89023e62a488108" #Shiden
   endpoint: "wss://runtime.shiden.astar.network"
   dictionary: "https://api.subquery.network/sq/subquery/shiden-dictionary"
-  chaintypes:
-    file: ./dist/chaintypes.js
+  # chaintypes:
+  #   file: ./dist/chaintypesShiden.js
 dataSources:
   - kind: substrate/Runtime
     startBlock: 6396000
